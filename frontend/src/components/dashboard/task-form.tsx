@@ -39,7 +39,7 @@ const TaskFormComponent: React.FC<TaskFormComponentProps> = ({
       setValue('title', task.title || '');
       setValue('description', task.description || '');
       setValue('status', task.status || 'todo');
-      setValue('dueDate', task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : '');
+      setValue('dueDate', task.dueDate ? new Date(task.dueDate).toISOString().split('T')[0] : undefined);
       setValue('priority', task.priority || 'medium');
     }
   }, [task, setValue]);
@@ -125,7 +125,7 @@ const TaskFormComponent: React.FC<TaskFormComponentProps> = ({
             className="mt-1 block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm bg-white dark:bg-gray-700 dark:text-white"
           />
           {errors.dueDate && (
-            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.dueDate.message}</p>
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.dueDate.message as string}</p>
           )}
         </div>
       </div>

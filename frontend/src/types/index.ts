@@ -56,14 +56,14 @@ export interface LoginForm {
 }
 
 export interface SignupForm extends LoginForm {
-  name?: string;
+  name: string;
 }
 
 export interface TaskForm {
   title: string;
   description?: string;
   status: 'todo' | 'in-progress' | 'done';
-  dueDate?: Date;
+  dueDate?: any;
   priority?: 'low' | 'medium' | 'high';
 }
 

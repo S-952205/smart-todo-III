@@ -36,9 +36,6 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusCha
     }
   };
 
-  // Convert completed boolean to status string for display
-  const taskStatus = task.completed ? 'done' : 'todo';
-
   return (
     <div className={` border-red-400 p-5 shadow-md bg-white dark:bg-gray-800 dark:border-gray-700 transition-all duration-200 hover:shadow-md ${getPriorityColor(task.priority)}`}>
       <div className="flex justify-between items-start">
@@ -71,12 +68,12 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusCha
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusColor(taskStatus)}`}>
-          {taskStatus.replace('-', ' ')}
+        <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusColor(task.status)}`}>
+          {task.status.replace('-', ' ')}
         </span>
 
         <select
-          value={taskStatus}
+          value={task.status}
           onChange={(e) => onStatusChange(task.id, e.target.value as 'todo' | 'in-progress' | 'done')}
           className="text-xs border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         >

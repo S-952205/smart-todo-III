@@ -21,7 +21,7 @@ const TasksPage: React.FC = () => {
     const fetchTasks = async () => {
       try {
         setLoading(true);
-        const response = await apiClient.get<Task[]>('/api/v1/tasks');
+        const response = await apiClient.get<any[]>('/api/v1/tasks');
 
         if (response.success && response.data) {
           // Transform backend response to frontend model
@@ -61,7 +61,7 @@ const TasksPage: React.FC = () => {
 
       if (editingTask) {
         // Update existing task
-        const response = await apiClient.put<Task>(`/api/v1/tasks/${editingTask.id}`, transformedData);
+        const response = await apiClient.put<any>(`/api/v1/tasks/${editingTask.id}`, transformedData);
 
         if (response.success) {
           // Transform backend response to frontend model
@@ -82,7 +82,7 @@ const TasksPage: React.FC = () => {
         }
       } else {
         // Create new task
-        const response = await apiClient.post<Task>('/api/v1/tasks', transformedData);
+        const response = await apiClient.post<any>('/api/v1/tasks', transformedData);
 
         if (response.success) {
           // Transform backend response to frontend model
@@ -137,7 +137,7 @@ const TasksPage: React.FC = () => {
         priority: taskToUpdate.priority || 'medium' // Include priority in the request
       };
 
-      const response = await apiClient.put<Task>(`/api/v1/tasks/${id}`, transformedData);
+      const response = await apiClient.put<any>(`/api/v1/tasks/${id}`, transformedData);
 
       if (response.success) {
         // Transform backend response to frontend model

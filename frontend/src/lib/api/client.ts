@@ -90,14 +90,12 @@ class ApiClient {
   }
 
   private async request<T>(url: string, options: RequestInit): Promise<{ success: boolean; data?: T; error?: string; message?: string }> {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
+    const headers = new Headers(options.headers);
+    headers.set('Content-Type', 'application/json');
 
     const token = this.getAccessToken();
     if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+      headers.set('Authorization', `Bearer ${token}`);
     }
 
     const config: RequestInit = {
@@ -113,10 +111,8 @@ class ApiClient {
         try {
           await this.refreshToken();
           // Retry the original request with the new token
-          const retryHeaders = {
-            ...headers,
-            'Authorization': `Bearer ${this.getAccessToken()}`,
-          };
+          const retryHeaders = new Headers(headers);
+          retryHeaders.set('Authorization', `Bearer ${this.getAccessToken()}`);
 
           const retryResponse = await fetch(this.baseURL + url, {
             ...options,
@@ -140,7 +136,7 @@ class ApiClient {
 
       // Check if response has content before trying to parse JSON
       const contentType = response.headers.get('content-type');
-      let data = {};
+      let data: any = {};
 
       if (contentType && contentType.includes('application/json')) {
         try {
@@ -168,10 +164,12 @@ class ApiClient {
         }
       }
 
-      return {
-        success: response.ok,
-        ...(response.ok ? { data } : { error: (data as any).message || 'Request failed', message: (data as any).message })
-      };
+      if (response.ok) {
+        return { success: true, data: Object.keys(data).length > 0 ? data as T : undefined };
+      } else {
+        const errorMessage = (data as any)?.message || 'Request failed';
+        return { success: false, error: errorMessage, message: errorMessage };
+      }
     } catch (error: any) {
       return {
         success: false,

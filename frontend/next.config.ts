@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   experimental: {
-    serverActions: true,
+    serverActions: {},
   },
   images: {
     domains: ['localhost', '127.0.0.1'],
