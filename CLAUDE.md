@@ -214,6 +214,8 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Neon Serverless PostgreSQL (001-todo-backend)
 - TypeScript 5.0+, JavaScript ES2022 + Next.js 16, React 18, Better Auth, Tailwind CSS, Shadcn UI (002-frontend-auth)
 - Browser localStorage/sessionStorage for JWT tokens, cookies for session management (002-frontend-auth)
+- Python 3.13, TypeScript 5.0+, JavaScript ES2022 + FastAPI, SQLModel, Alembic, OpenAI Agents SDK, OpenRouter API, Better Auth, Next.js 16+, React 18, ChatKit UI (003-ai-chatbot-mcp)
+- Neon Serverless PostgreSQL with Alembic for migrations (003-ai-chatbot-mcp)
 
 ## Recent Changes
 - 001-todo-backend: Added Python 3.13+ + FastAPI, SQLModel, psycopg2-binary, python-jose, Better Auth

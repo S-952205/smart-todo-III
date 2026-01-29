@@ -1,0 +1,239 @@
+openapi: 3.0.3
+info:
+  title: AI Chatbot API
+  description: API for AI-powered chatbot integration with task management
+  version: 1.0.0
+servers:
+  - url: http://localhost:8000
+    description: Development server
+
+paths:
+  /api/v1/chat:
+    post:
+      summary: Send a message to the AI chatbot
+      description: Sends a user message to the AI chatbot and returns the AI response
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChatRequest'
+      responses:
+        '200':
+          description: Successful response from the AI chatbot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChatResponse'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '422':
+          description: Unprocessable entity - Invalid request format
+        '500':
+          description: Internal server error
+
+  /api/v1/chat/conversations:
+    get:
+      summary: Get user's conversations
+      description: Retrieve a list of conversations for the authenticated user
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: List of user's conversations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Conversation'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '500':
+          description: Internal server error
+
+  /api/v1/chat/conversations/{conversation_id}:
+    get:
+      summary: Get specific conversation
+      description: Retrieve a specific conversation by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Specific conversation with messages
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationWithMessages'
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '404':
+          description: Conversation not found
+        '500':
+          description: Internal server error
+
+    delete:
+      summary: Delete a conversation
+      description: Delete a specific conversation by ID
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Conversation deleted successfully
+        '401':
+          description: Unauthorized - Invalid or missing JWT token
+        '404':
+          description: Conversation not found
+        '500':
+          description: Internal server error
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          description: The user's message to send to the chatbot
+          example: "Add a task to buy groceries"
+        conversation_id:
+          type: string
+          format: uuid
+          description: Optional conversation ID to continue an existing conversation
+          example: "550e8400-e29b-41d4-a716-446655440000"
+
+    ChatResponse:
+      type: object
+      required:
+        - response
+        - conversation_id
+      properties:
+        response:
+          type: string
+          description: The AI chatbot's response
+          example: "I've created a task 'buy groceries' for you."
+        conversation_id:
+          type: string
+          format: uuid
+          description: The conversation ID for this interaction
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        tool_calls:
+          type: array
+          items:
+            type: object
+            properties:
+              tool_name:
+                type: string
+                description: Name of the tool that was called
+                example: "add_task"
+              parameters:
+                type: object
+                description: Parameters passed to the tool
+                example: {"title": "buy groceries"}
+
+    Conversation:
+      type: object
+      required:
+        - id
+        - user_id
+        - title
+        - created_at
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the conversation
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        user_id:
+          type: string
+          description: ID of the user who owns this conversation
+          example: "user_12345"
+        title:
+          type: string
+          description: Title/summary of the conversation
+          example: "Grocery list management"
+        created_at:
+          type: string
+          format: date-time
+          description: When the conversation was created
+          example: "2023-10-20T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: When the conversation was last updated
+          example: "2023-10-20T11:30:00Z"
+
+    Message:
+      type: object
+      required:
+        - id
+        - conversation_id
+        - role
+        - content
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique identifier for the message
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        conversation_id:
+          type: string
+          format: uuid
+          description: ID of the conversation this message belongs to
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        role:
+          type: string
+          enum: [user, assistant]
+          description: Role of the message sender
+          example: "user"
+        content:
+          type: string
+          description: Content of the message
+          example: "Add a task to buy groceries"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the message was sent
+          example: "2023-10-20T10:15:00Z"
+        metadata:
+          type: object
+          description: Additional metadata about the message
+          example: {"tool_call_result": true}
+
+    ConversationWithMessages:
+      type: object
+      required:
+        - conversation
+        - messages
+      properties:
+        conversation:
+          $ref: '#/components/schemas/Conversation'
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
