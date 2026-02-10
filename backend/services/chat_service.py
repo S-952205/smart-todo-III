@@ -228,45 +228,105 @@ When the user asks you to create, list, update, complete, or delete tasks, use t
 
             # If the model wants to call tools
             if tool_calls:
-                # Add assistant's response to messages
-                messages.append(response_message)
+                # Add assistant's response to messages in the correct format
+                messages.append({
+                    "role": "assistant",
+                    "content": response_message.content or "",
+                    "tool_calls": [
+                        {
+                            "id": tc.id,
+                            "type": "function",
+                            "function": {
+                                "name": tc.function.name,
+                                "arguments": tc.function.arguments
+                            }
+                        } for tc in tool_calls
+                    ]
+                })
 
                 # Execute each tool call
                 for tool_call in tool_calls:
                     function_name = tool_call.function.name
                     import json
-                    function_args = json.loads(tool_call.function.arguments)
+                    import re
+
+                    # Parse function arguments - handle both string and dict formats
+                    if isinstance(tool_call.function.arguments, str):
+                        try:
+                            # Try to parse normally first
+                            function_args = json.loads(tool_call.function.arguments)
+                        except json.JSONDecodeError as e:
+                            # Handle malformed format like: {}{"title": "value"}
+                            # Extract all JSON objects and use the non-empty one
+                            logger.warning(f"Malformed tool arguments detected: {tool_call.function.arguments}")
+
+                            # Find all JSON objects in the string
+                            json_objects = re.findall(r'\{[^{}]*\}', tool_call.function.arguments)
+                            function_args = {}
+
+                            for json_str in json_objects:
+                                try:
+                                    parsed = json.loads(json_str)
+                                    # Use the first non-empty object
+                                    if parsed:
+                                        function_args = parsed
+                                        break
+                                except:
+                                    continue
+
+                            if not function_args:
+                                logger.error(f"Could not extract valid arguments from: {tool_call.function.arguments}")
+                                function_args = {}
+                    elif isinstance(tool_call.function.arguments, dict):
+                        function_args = tool_call.function.arguments
+                    else:
+                        logger.warning(f"Unexpected arguments type: {type(tool_call.function.arguments)}")
+                        function_args = {}
 
                     logger.info(f"Executing tool: {function_name} with args: {function_args}")
 
                     # Execute the appropriate MCP tool
-                    if function_name == "add_task":
-                        result = mcp_tools.add_task(
-                            title=function_args.get("title"),
-                            description=function_args.get("description")
-                        )
-                    elif function_name == "list_tasks":
-                        result = mcp_tools.list_tasks()
-                    elif function_name == "complete_task":
-                        result = mcp_tools.complete_task(function_args.get("task_id"))
-                    elif function_name == "update_task":
-                        result = mcp_tools.update_task(
-                            task_id=function_args.get("task_id"),
-                            title=function_args.get("title"),
-                            description=function_args.get("description"),
-                            completed=function_args.get("completed")
-                        )
-                    elif function_name == "delete_task":
-                        result = mcp_tools.delete_task(function_args.get("task_id"))
-                    else:
-                        result = {"error": f"Unknown function: {function_name}"}
+                    try:
+                        if function_name == "add_task":
+                            result = mcp_tools.add_task(
+                                title=function_args.get("title"),
+                                description=function_args.get("description")
+                            )
+                        elif function_name == "list_tasks":
+                            result = mcp_tools.list_tasks()
+                        elif function_name == "complete_task":
+                            result = mcp_tools.complete_task(function_args.get("task_id"))
+                        elif function_name == "update_task":
+                            result = mcp_tools.update_task(
+                                task_id=function_args.get("task_id"),
+                                title=function_args.get("title"),
+                                description=function_args.get("description"),
+                                completed=function_args.get("completed")
+                            )
+                        elif function_name == "delete_task":
+                            result = mcp_tools.delete_task(function_args.get("task_id"))
+                        else:
+                            result = {"error": f"Unknown function: {function_name}"}
+
+                        # Convert result to string for tool response
+                        result_str = json.dumps(result) if isinstance(result, (dict, list)) else str(result)
+
+                    except Exception as tool_error:
+                        logger.error(f"Error executing tool {function_name}: {str(tool_error)}")
+                        result_str = json.dumps({"error": f"Tool execution failed: {str(tool_error)}"})
+
+                        # Rollback the session if there was a database error
+                        try:
+                            session.rollback()
+                        except:
+                            pass
 
                     # Add tool response to messages
                     messages.append({
                         "role": "tool",
                         "tool_call_id": tool_call.id,
                         "name": function_name,
-                        "content": json.dumps(result)
+                        "content": result_str
                     })
 
                 # Get final response from the model with OpenRouter's native fallback
