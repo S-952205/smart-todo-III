@@ -6,6 +6,7 @@ import TaskCard from '@/components/dashboard/task-card';
 import TaskForm from '@/components/dashboard/task-form';
 import apiClient from '@/lib/api/client';
 import { useAuth } from '@/context/auth-context';
+import Link from 'next/link';
 
 const TasksPage: React.FC = () => {
   const { state } = useAuth();
@@ -186,6 +187,10 @@ const TasksPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">My Tasks</h1>
 
           <div className="flex space-x-4">
+            <Link href="/dashboard" className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
+              Chat with AI Assistant
+            </Link>
+
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}

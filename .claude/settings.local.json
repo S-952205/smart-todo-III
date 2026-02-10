@@ -9,7 +9,11 @@
       "Bash(.specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks)",
       "Bash(dir \"frontend\\\\src\\\\app\")",
       "Bash(dir \"frontend\\\\src\\\\app\\\\dashboard\")",
-      "Bash(.find . -name \"tasks.md\" -o -name \"plan.md\" -o -name \"spec.md\")"
+      "Bash(.find . -name \"tasks.md\" -o -name \"plan.md\" -o -name \"spec.md\")",
+      "Bash(netstat -ano)",
+      "Bash(taskkill:*)",
+      "Bash(python:*)",
+      "mcp__context7__get-library-docs"
     ]
   }
 }

@@ -1,8 +1,14 @@
+"""
+Models package initialization
+"""
+
+# Import all models from the main models.py file
 from sqlmodel import SQLModel, Field
 from datetime import datetime
 from typing import Optional
 from pydantic import field_validator
 import re
+import uuid
 
 
 class UserBase(SQLModel):
@@ -21,9 +27,16 @@ class User(UserBase, table=True):
 
 class UserCreate(SQLModel):
     """Model for creating a new user."""
-    email: str = Field(regex=r'^[^@]+@[^@]+\.[^@]+$')  # Basic email validation
+    email: str = Field(min_length=1, max_length=255)
     name: str = Field(min_length=1, max_length=100)
     password: str = Field(min_length=8, max_length=64)  # Minimum 8, maximum 64 characters to avoid bcrypt limits
+
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v):
+        if not re.match(r'^[^@]+@[^@]+\.[^@]+$', v):
+            raise ValueError('Invalid email address')
+        return v
 
 
 class UserResponse(SQLModel):
@@ -80,3 +93,25 @@ class TaskResponse(TaskBase):
 class ErrorResponse(SQLModel):
     """Model for error responses."""
     detail: str
+
+
+# Import chat models
+from .chat_models import ConversationBase, Conversation, MessageBase, Message
+
+__all__ = [
+    "UserBase",
+    "User",
+    "UserCreate",
+    "UserResponse",
+    "TokenResponse",
+    "TaskBase",
+    "Task",
+    "TaskCreate",
+    "TaskUpdate",
+    "TaskResponse",
+    "ErrorResponse",
+    "ConversationBase",
+    "Conversation",
+    "MessageBase",
+    "Message"
+]
