@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Literal
 from pydantic import field_validator
 import re
 
@@ -46,7 +46,9 @@ class TaskBase(SQLModel):
     """Base model for Task with shared attributes."""
     title: str = Field(min_length=1, max_length=200)
     description: Optional[str] = Field(default=None, max_length=1000)
-    completed: bool = Field(default=False)
+    status: Literal['todo', 'in-progress', 'done'] = Field(default='todo')
+    priority: Optional[Literal['low', 'medium', 'high']] = Field(default='medium')
+    due_date: Optional[datetime] = Field(default=None)
 
 
 class Task(TaskBase, table=True):
@@ -54,20 +56,25 @@ class Task(TaskBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: str = Field(index=True)  # Indexed for performance
     created_at: datetime = Field(default_factory=datetime.utcnow)
+    updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 class TaskCreate(TaskBase):
     """Model for creating a new task."""
     title: str = Field(min_length=1, max_length=200)
     description: Optional[str] = Field(default=None, max_length=1000)
-    completed: Optional[bool] = Field(default=False)
+    status: Optional[Literal['todo', 'in-progress', 'done']] = Field(default='todo')
+    priority: Optional[Literal['low', 'medium', 'high']] = Field(default='medium')
+    due_date: Optional[datetime] = Field(default=None)
 
 
 class TaskUpdate(SQLModel):
     """Model for updating an existing task."""
     title: Optional[str] = Field(default=None, min_length=1, max_length=200)
     description: Optional[str] = Field(default=None, max_length=1000)
-    completed: Optional[bool] = Field(default=None)
+    status: Optional[Literal['todo', 'in-progress', 'done']] = Field(default=None)
+    priority: Optional[Literal['low', 'medium', 'high']] = Field(default=None)
+    due_date: Optional[datetime] = Field(default=None)
 
 
 class TaskResponse(TaskBase):
@@ -75,6 +82,7 @@ class TaskResponse(TaskBase):
     id: int
     user_id: str
     created_at: datetime
+    updated_at: datetime
 
 
 class ErrorResponse(SQLModel):

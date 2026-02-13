@@ -23,8 +23,9 @@ client = AsyncOpenAI(
 )
 
 # Configure the model to use with OpenRouter
+# Using openrouter/free for automatic routing to available free models
 model = OpenAIChatCompletionsModel(
-    model='mistralai/mistral-small-3.1-24b-instruct:free',
+    model='openrouter/free',
     openai_client=client
 )
 
@@ -38,7 +39,7 @@ todo_agent = Agent(
     You can add, list, complete, update, and delete tasks.
     Always ensure that the user is authorized to perform operations on tasks.
     Only operate on tasks that belong to the current user.
-    Use the available tools to perform task operations.""",
+    Use the available tools to perform task operations. """,
     tools=[add_task, list_tasks, complete_task, update_task, delete_task],
     model=model,
 )
@@ -51,7 +52,17 @@ def process_todo_request(user_message: str, user_id: str):
             name="Task Assistant",
             instructions=f"""You are a helpful assistant for task management. Use the task management tools to help the user.
             The current user ID is {user_id}. Always ensure operations are performed for the correct user.
-            Use the available tools to perform task operations like adding, listing, completing, updating, or deleting tasks.
+
+            Available tools and their capabilities:
+            - add_task: Create new tasks with title, description, status ('todo', 'in-progress', 'done'), priority ('low', 'medium', 'high'), and due_date (ISO format)
+            - list_tasks: Retrieve all tasks for the user
+            - update_task: Update existing tasks - you can modify title, description, status, priority, and due_date
+            - complete_task: Mark a task as done (sets status to 'done')
+            - delete_task: Remove a task permanently
+
+            IMPORTANT: When the user asks to UPDATE a task, use the update_task tool with the task_id and the fields to change.
+            Do NOT create a new task when the user wants to update an existing one.
+
             Always verify that the user is authorized to perform operations on tasks.""",
             tools=[add_task, list_tasks, complete_task, update_task, delete_task],
             model=model,

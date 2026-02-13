@@ -85,8 +85,11 @@ class ChatService:
             conversation = self.get_or_create_conversation(session, user_id, conversation_id)
             conversation_id = conversation.id
 
-            # Save user message
-            self.save_message(session, conversation_id, "user", user_message)
+            # Load conversation history BEFORE saving the new message
+            message_statement = select(Message).where(
+                Message.conversation_id == conversation_id
+            ).order_by(Message.timestamp)
+            history_messages = session.exec(message_statement).all()
 
             # Import MCP tools
             from tools.mcp_tools import MCPTaskTools
@@ -121,7 +124,7 @@ class ChatService:
                     "type": "function",
                     "function": {
                         "name": "list_tasks",
-                        "description": "List all tasks for the user",
+                        "description": "List all tasks for the user. Use this to find task IDs when the user refers to tasks by title.",
                         "parameters": {
                             "type": "object",
                             "properties": {}
@@ -149,7 +152,7 @@ class ChatService:
                     "type": "function",
                     "function": {
                         "name": "update_task",
-                        "description": "Update an existing task",
+                        "description": "Update an existing task. Requires the task ID.",
                         "parameters": {
                             "type": "object",
                             "properties": {
@@ -178,7 +181,7 @@ class ChatService:
                     "type": "function",
                     "function": {
                         "name": "delete_task",
-                        "description": "Delete a task",
+                        "description": "Delete a task. Requires the task ID.",
                         "parameters": {
                             "type": "object",
                             "properties": {
@@ -193,20 +196,47 @@ class ChatService:
                 }
             ]
 
-            # Prepare messages
+            # Prepare messages with conversation history
             messages = [
                 {
                     "role": "system",
                     "content": f"""You are a helpful AI assistant that manages tasks for users.
 You have access to task management tools. Use them to help the user with their tasks.
 The current user ID is {user_id}. Always perform operations for this user only.
-When the user asks you to create, list, update, complete, or delete tasks, use the appropriate tool."""
-                },
-                {
-                    "role": "user",
-                    "content": user_message
+
+CRITICAL TOOL CALLING RULES:
+- You MUST use the OpenAI function calling format to call tools
+- NEVER write tool calls as text like <tool_call> or function_call()
+- NEVER output JSON or XML representations of tool calls
+- When you need to call a tool, use the native tool calling mechanism provided by the API
+- The system will automatically execute your tool calls and return results
+
+TASK MANAGEMENT INSTRUCTIONS:
+- When the user asks you to create, list, update, complete, or delete tasks, use the appropriate tool
+- When the user refers to a task by its title (e.g., "update my task buying new mobile"), you MUST:
+  1. First call list_tasks to get all tasks
+  2. Find the task with the matching title
+  3. Use the task's ID to call update_task or delete_task
+- Always use the proper tool functions: add_task, list_tasks, complete_task, update_task, delete_task
+- After a tool is executed, provide a natural language response to the user about what was done"""
                 }
             ]
+
+            # Add conversation history
+            for msg in history_messages:
+                messages.append({
+                    "role": msg.role,
+                    "content": msg.content
+                })
+
+            # Add the current user message
+            messages.append({
+                "role": "user",
+                "content": user_message
+            })
+
+            # Save user message after building the messages array
+            self.save_message(session, conversation_id, "user", user_message)
 
             # Make initial API call with OpenRouter's native fallback
             response = await self.client.chat.completions.create(
@@ -216,9 +246,9 @@ When the user asks you to create, list, update, complete, or delete tasks, use t
                 tool_choice="auto",
                 extra_body={
                     "models": [
-                        "meta-llama/llama-3.2-3b-instruct:free",
-                        "google/gemini-2.0-flash-exp:free",
-                        "mistralai/mistral-7b-instruct:free"
+                        "openrouter/free",
+                        "upstage/solar-pro-3:free",
+                        "nvidia/nemotron-3-nano-30b-a3b:free"
                     ]
                 }
             )
@@ -335,9 +365,9 @@ When the user asks you to create, list, update, complete, or delete tasks, use t
                     messages=messages,
                     extra_body={
                         "models": [
-                            "meta-llama/llama-3.2-3b-instruct:free",
-                            "google/gemini-2.0-flash-exp:free",
-                            "mistralai/mistral-7b-instruct:free"
+                            "openrouter/free",
+                            "upstage/solar-pro-3:free",
+                            "nvidia/nemotron-3-nano-30b-a3b:free"
                         ]
                     }
                 )
@@ -346,6 +376,68 @@ When the user asks you to create, list, update, complete, or delete tasks, use t
             else:
                 # No tool calls, use the direct response
                 assistant_response = response_message.content
+
+                # Check if the model outputted tool call syntax as text (common issue with some models)
+                if assistant_response and ('<tool_call>' in assistant_response or ('"name"' in assistant_response and '"arguments"' in assistant_response)):
+                    logger.warning(f"Model outputted tool call syntax as text instead of using proper tool calling")
+
+                    # Try to parse and execute the tool call from text
+                    import re
+                    try:
+                        # Remove XML-like tags if present
+                        cleaned_response = re.sub(r'</?tool_call>', '', assistant_response).strip()
+
+                        # Try to find JSON object
+                        json_match = re.search(r'\{.*\}', cleaned_response, re.DOTALL)
+                        if json_match:
+                            tool_call_data = json.loads(json_match.group())
+                            function_name = tool_call_data.get('name')
+                            function_args = tool_call_data.get('arguments', {})
+
+                            # If arguments is a string, parse it
+                            if isinstance(function_args, str):
+                                function_args = json.loads(function_args)
+
+                            logger.info(f"Parsed text-based tool call: {function_name} with args: {function_args}")
+
+                            # Execute the tool
+                            if function_name == "update_task":
+                                # Handle both 'id' and 'task_id' parameter names
+                                if 'id' in function_args and 'task_id' not in function_args:
+                                    function_args['task_id'] = function_args.pop('id')
+
+                                # If no task_id provided, try to find by title
+                                if not function_args.get('task_id') and function_args.get('title'):
+                                    tasks = mcp_tools.list_tasks()
+                                    matching_task = next((t for t in tasks if t['title'].lower() == function_args['title'].lower()), None)
+                                    if matching_task:
+                                        function_args['task_id'] = matching_task['id']
+
+                                if function_args.get('task_id'):
+                                    result = mcp_tools.update_task(
+                                        task_id=function_args.get("task_id"),
+                                        title=function_args.get("title"),
+                                        description=function_args.get("description"),
+                                        completed=function_args.get("completed")
+                                    )
+                                    assistant_response = f"Task updated successfully! '{result.get('title', 'Task')}' now has the description: {result.get('description', 'N/A')}"
+                                else:
+                                    assistant_response = "I couldn't find the task you're referring to. Please try listing your tasks first."
+
+                            elif function_name == "list_tasks":
+                                result = mcp_tools.list_tasks()
+                                if result:
+                                    task_list = "\n".join([f"- {t['id']}: {t['title']}" for t in result])
+                                    assistant_response = f"You have {len(result)} tasks:\n{task_list}"
+                                else:
+                                    assistant_response = "You don't have any tasks yet."
+                            else:
+                                assistant_response = "I apologize, but I encountered an issue processing your request. Could you please try again?"
+                    except Exception as parse_error:
+                        logger.error(f"Failed to parse text-based tool call: {parse_error}")
+                        import traceback
+                        traceback.print_exc()
+                        assistant_response = "I apologize, but I encountered an issue processing your request. Could you please rephrase what you'd like me to do?"
 
             # Save assistant message
             self.save_message(session, conversation_id, "assistant", assistant_response)

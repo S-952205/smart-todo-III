@@ -25,13 +25,13 @@ const TasksPage: React.FC = () => {
         const response = await apiClient.get<any[]>('/api/v1/tasks');
 
         if (response.success && response.data) {
-          // Transform backend response to frontend model
+          // Transform dates to Date objects
           const transformedTasks = response.data.map(task => ({
             ...task,
-            status: task.completed ? 'done' : 'todo', // Map completed boolean to status
-            createdAt: new Date(task.createdAt), // Ensure date objects
-            updatedAt: new Date(task.updatedAt || task.createdAt), // Ensure date objects
-            priority: task.priority || 'medium' // Include priority in the frontend model
+            createdAt: new Date(task.created_at),
+            updatedAt: new Date(task.updated_at),
+            dueDate: task.due_date ? new Date(task.due_date) : undefined,
+            userId: task.user_id
           }));
           setTasks(transformedTasks);
         } else {
@@ -53,25 +53,27 @@ const TasksPage: React.FC = () => {
   // Handle form submission (create/update)
   const handleFormSubmit = async (formData: any) => {
     try {
-      // Transform frontend model to backend model (status -> completed, add priority)
-      const transformedData = {
-        ...formData,
-        completed: formData.status === 'done', // Convert status to completed boolean
-        priority: formData.priority || 'medium' // Include priority in the request
+      // Convert frontend camelCase to backend snake_case
+      const backendData = {
+        title: formData.title,
+        description: formData.description,
+        status: formData.status,
+        priority: formData.priority,
+        due_date: formData.dueDate ? formData.dueDate.toISOString() : null
       };
 
       if (editingTask) {
         // Update existing task
-        const response = await apiClient.put<any>(`/api/v1/tasks/${editingTask.id}`, transformedData);
+        const response = await apiClient.put<any>(`/api/v1/tasks/${editingTask.id}`, backendData);
 
         if (response.success) {
-          // Transform backend response to frontend model
+          // Transform response to frontend model
           const updatedTask = {
             ...response.data,
-            status: response.data.completed ? 'done' : 'todo', // Map completed boolean to status
-            createdAt: new Date(response.data.createdAt), // Ensure date objects
-            updatedAt: new Date(response.data.updatedAt || response.data.createdAt), // Ensure date objects
-            priority: response.data.priority || 'medium' // Include priority in the frontend model
+            createdAt: new Date(response.data.created_at),
+            updatedAt: new Date(response.data.updated_at),
+            dueDate: response.data.due_date ? new Date(response.data.due_date) : undefined,
+            userId: response.data.user_id
           };
           setTasks(tasks.map(task =>
             task.id === editingTask.id ? updatedTask : task
@@ -83,16 +85,16 @@ const TasksPage: React.FC = () => {
         }
       } else {
         // Create new task
-        const response = await apiClient.post<any>('/api/v1/tasks', transformedData);
+        const response = await apiClient.post<any>('/api/v1/tasks', backendData);
 
         if (response.success) {
-          // Transform backend response to frontend model
+          // Transform response to frontend model
           const newTask = {
             ...response.data,
-            status: response.data.completed ? 'done' : 'todo', // Map completed boolean to status
-            createdAt: new Date(response.data.createdAt), // Ensure date objects
-            updatedAt: new Date(response.data.updatedAt || response.data.createdAt), // Ensure date objects
-            priority: response.data.priority || 'medium' // Include priority in the frontend model
+            createdAt: new Date(response.data.created_at),
+            updatedAt: new Date(response.data.updated_at),
+            dueDate: response.data.due_date ? new Date(response.data.due_date) : undefined,
+            userId: response.data.user_id
           };
           setTasks([...tasks, newTask]);
           setShowForm(false);
@@ -130,24 +132,21 @@ const TasksPage: React.FC = () => {
       const taskToUpdate = tasks.find(task => task.id === id);
       if (!taskToUpdate) return;
 
-      // Transform frontend model to backend model (status -> completed)
-      const transformedData = {
-        ...taskToUpdate,
-        status,
-        completed: status === 'done', // Convert status to completed boolean
-        priority: taskToUpdate.priority || 'medium' // Include priority in the request
+      // Send status update to backend
+      const backendData = {
+        status
       };
 
-      const response = await apiClient.put<any>(`/api/v1/tasks/${id}`, transformedData);
+      const response = await apiClient.put<any>(`/api/v1/tasks/${id}`, backendData);
 
       if (response.success) {
-        // Transform backend response to frontend model
+        // Transform response to frontend model
         const updatedTask = {
           ...response.data,
-          status: response.data.completed ? 'done' : 'todo', // Map completed boolean to status
-          createdAt: new Date(response.data.createdAt), // Ensure date objects
-          updatedAt: new Date(response.data.updatedAt || response.data.createdAt), // Ensure date objects
-          priority: response.data.priority || 'medium' // Include priority in the frontend model
+          createdAt: new Date(response.data.created_at),
+          updatedAt: new Date(response.data.updated_at),
+          dueDate: response.data.due_date ? new Date(response.data.due_date) : undefined,
+          userId: response.data.user_id
         };
         setTasks(tasks.map(task =>
           task.id === id ? updatedTask : task

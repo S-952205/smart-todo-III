@@ -12,22 +12,37 @@ logger = logging.getLogger(__name__)
 
 
 @function_tool
-def add_task(title: str, description: Optional[str], user_id: str) -> Dict[str, Any]:
+def add_task(title: str, description: Optional[str] = None, status: Optional[str] = 'todo',
+             priority: Optional[str] = 'medium', due_date: Optional[str] = None,
+             user_id: str = None) -> Dict[str, Any]:
     """
     Add a new task for the user.
 
     Args:
         title: Title of the task to create
         description: Optional description of the task
+        status: Task status ('todo', 'in-progress', 'done'), defaults to 'todo'
+        priority: Task priority ('low', 'medium', 'high'), defaults to 'medium'
+        due_date: Optional due date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
         user_id: ID of the user creating the task
 
     Returns:
         Dictionary with created task details
     """
+    from datetime import datetime
+
     session = next(get_session())
     try:
+        # Parse due_date string to datetime if provided
+        due_date_obj = None
+        if due_date:
+            try:
+                due_date_obj = datetime.fromisoformat(due_date.replace('Z', '+00:00'))
+            except ValueError:
+                logger.warning(f"Invalid due_date format: {due_date}")
+
         tools = MCPTaskTools(session, user_id)
-        result = tools.add_task(title, description)
+        result = tools.add_task(title, description, status, priority, due_date_obj)
         logger.info(f"Agent created task: {result['id']} for user: {user_id}")
         return result
     finally:
@@ -58,7 +73,7 @@ def list_tasks(user_id: str) -> List[Dict[str, Any]]:
 @function_tool
 def complete_task(task_id: int, user_id: str) -> Dict[str, Any]:
     """
-    Mark a task as complete for the user.
+    Mark a task as complete (status='done') for the user.
 
     Args:
         task_id: ID of the task to mark as complete
@@ -83,7 +98,9 @@ def update_task(
     user_id: str,
     title: Optional[str] = None,
     description: Optional[str] = None,
-    completed: Optional[bool] = None
+    status: Optional[str] = None,
+    priority: Optional[str] = None,
+    due_date: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Update an existing task for the user.
@@ -93,15 +110,27 @@ def update_task(
         user_id: ID of the user requesting the action
         title: New title (optional)
         description: New description (optional)
-        completed: New completion status (optional)
+        status: New status ('todo', 'in-progress', 'done') (optional)
+        priority: New priority ('low', 'medium', 'high') (optional)
+        due_date: New due date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS) (optional)
 
     Returns:
         Dictionary with updated task details
     """
+    from datetime import datetime
+
     session = next(get_session())
     try:
+        # Parse due_date string to datetime if provided
+        due_date_obj = None
+        if due_date:
+            try:
+                due_date_obj = datetime.fromisoformat(due_date.replace('Z', '+00:00'))
+            except ValueError:
+                logger.warning(f"Invalid due_date format: {due_date}")
+
         tools = MCPTaskTools(session, user_id)
-        result = tools.update_task(task_id, title, description, completed)
+        result = tools.update_task(task_id, title, description, status, priority, due_date_obj)
         logger.info(f"Agent updated task: {task_id} for user: {user_id}")
         return result
     finally:

@@ -7,8 +7,23 @@ from sqlmodel import SQLModel, Field
 from datetime import datetime
 from typing import Optional
 from pydantic import field_validator
+from enum import Enum
 import re
 import uuid
+
+
+class TaskStatus(str, Enum):
+    """Task status enum"""
+    TODO = 'todo'
+    IN_PROGRESS = 'in-progress'
+    DONE = 'done'
+
+
+class TaskPriority(str, Enum):
+    """Task priority enum"""
+    LOW = 'low'
+    MEDIUM = 'medium'
+    HIGH = 'high'
 
 
 class UserBase(SQLModel):
@@ -59,28 +74,35 @@ class TaskBase(SQLModel):
     """Base model for Task with shared attributes."""
     title: str = Field(min_length=1, max_length=200)
     description: Optional[str] = Field(default=None, max_length=1000)
-    completed: bool = Field(default=False)
+    status: TaskStatus = Field(default=TaskStatus.TODO)
+    priority: Optional[TaskPriority] = Field(default=TaskPriority.MEDIUM)
+    due_date: Optional[datetime] = Field(default=None)
 
 
 class Task(TaskBase, table=True):
     """Task model representing the database table."""
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: str = Field(index=True)  # Indexed for performance
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=datetime.now)
+    updated_at: datetime = Field(default_factory=datetime.now)
 
 
 class TaskCreate(TaskBase):
     """Model for creating a new task."""
     title: str = Field(min_length=1, max_length=200)
     description: Optional[str] = Field(default=None, max_length=1000)
-    completed: Optional[bool] = Field(default=False)
+    status: Optional[TaskStatus] = Field(default=TaskStatus.TODO)
+    priority: Optional[TaskPriority] = Field(default=TaskPriority.MEDIUM)
+    due_date: Optional[datetime] = Field(default=None)
 
 
 class TaskUpdate(SQLModel):
     """Model for updating an existing task."""
     title: Optional[str] = Field(default=None, min_length=1, max_length=200)
     description: Optional[str] = Field(default=None, max_length=1000)
-    completed: Optional[bool] = Field(default=None)
+    status: Optional[TaskStatus] = Field(default=None)
+    priority: Optional[TaskPriority] = Field(default=None)
+    due_date: Optional[datetime] = Field(default=None)
 
 
 class TaskResponse(TaskBase):
@@ -88,6 +110,7 @@ class TaskResponse(TaskBase):
     id: int
     user_id: str
     created_at: datetime
+    updated_at: datetime
 
 
 class ErrorResponse(SQLModel):

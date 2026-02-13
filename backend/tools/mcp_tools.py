@@ -6,7 +6,8 @@ from typing import Dict, Any, Optional
 from sqlmodel import Session, select
 from models import Task
 from db import get_session
-from fastapi import HTTPException, status
+from fastapi import HTTPException
+from fastapi import status as http_status
 import logging
 from datetime import datetime
 from fastmcp import FastMCP
@@ -25,13 +26,18 @@ class MCPTaskTools:
         self.session = db_session
         self.user_id = user_id
 
-    def add_task(self, title: str, description: Optional[str] = None) -> Dict[str, Any]:
+    def add_task(self, title: str, description: Optional[str] = None,
+                 status: Optional[str] = 'todo', priority: Optional[str] = 'medium',
+                 due_date: Optional[datetime] = None) -> Dict[str, Any]:
         """
         Create a new task for the authenticated user.
 
         Args:
             title: Title of the task
             description: Optional description of the task
+            status: Task status ('todo', 'in-progress', 'done'), defaults to 'todo'
+            priority: Task priority ('low', 'medium', 'high'), defaults to 'medium'
+            due_date: Optional due date for the task
 
         Returns:
             Dictionary with task details
@@ -41,7 +47,9 @@ class MCPTaskTools:
             task = Task(
                 title=title,
                 description=description,
-                completed=False,
+                status=status or 'todo',
+                priority=priority or 'medium',
+                due_date=due_date,
                 user_id=self.user_id
             )
 
@@ -56,14 +64,17 @@ class MCPTaskTools:
                 "id": task.id,
                 "title": task.title,
                 "description": task.description,
-                "completed": task.completed,
+                "status": task.status,
+                "priority": task.priority,
+                "due_date": task.due_date.isoformat() if task.due_date else None,
                 "user_id": task.user_id,
-                "created_at": task.created_at.isoformat() if task.created_at else None
+                "created_at": task.created_at.isoformat() if task.created_at else None,
+                "updated_at": task.updated_at.isoformat() if task.updated_at else None
             }
         except Exception as e:
             logger.error(f"Error creating task for user {self.user_id}: {str(e)}")
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to create task"
             )
 
@@ -87,22 +98,25 @@ class MCPTaskTools:
                     "id": task.id,
                     "title": task.title,
                     "description": task.description,
-                    "completed": task.completed,
+                    "status": task.status,
+                    "priority": task.priority,
+                    "due_date": task.due_date.isoformat() if task.due_date else None,
                     "user_id": task.user_id,
-                    "created_at": task.created_at.isoformat() if task.created_at else None
+                    "created_at": task.created_at.isoformat() if task.created_at else None,
+                    "updated_at": task.updated_at.isoformat() if task.updated_at else None
                 })
 
             return task_list
         except Exception as e:
             logger.error(f"Error retrieving tasks for user {self.user_id}: {str(e)}")
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to retrieve tasks"
             )
 
     def complete_task(self, task_id: int) -> Dict[str, Any]:
         """
-        Mark a task as complete for the authenticated user.
+        Mark a task as complete (status='done') for the authenticated user.
 
         Args:
             task_id: ID of the task to complete
@@ -117,12 +131,13 @@ class MCPTaskTools:
             if not task:
                 logger.warning(f"Task {task_id} not found for user: {self.user_id}")
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
+                    status_code=http_status.HTTP_404_NOT_FOUND,
                     detail="Task not found or does not belong to the authenticated user"
                 )
 
-            # Mark as complete
-            task.completed = True
+            # Mark as complete by setting status to 'done'
+            task.status = 'done'
+            task.updated_at = datetime.now()
 
             self.session.add(task)
             self.session.commit()
@@ -134,21 +149,25 @@ class MCPTaskTools:
                 "id": task.id,
                 "title": task.title,
                 "description": task.description,
-                "completed": task.completed,
+                "status": task.status,
+                "priority": task.priority,
+                "due_date": task.due_date.isoformat() if task.due_date else None,
                 "user_id": task.user_id,
-                "created_at": task.created_at.isoformat() if task.created_at else None
+                "created_at": task.created_at.isoformat() if task.created_at else None,
+                "updated_at": task.updated_at.isoformat() if task.updated_at else None
             }
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error completing task {task_id} for user {self.user_id}: {str(e)}")
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to complete task"
             )
 
     def update_task(self, task_id: int, title: Optional[str] = None,
-                   description: Optional[str] = None, completed: Optional[bool] = None) -> Dict[str, Any]:
+                   description: Optional[str] = None, status: Optional[str] = None,
+                   priority: Optional[str] = None, due_date: Optional[datetime] = None) -> Dict[str, Any]:
         """
         Update an existing task for the authenticated user.
 
@@ -156,7 +175,9 @@ class MCPTaskTools:
             task_id: ID of the task to update
             title: New title (optional)
             description: New description (optional)
-            completed: New completion status (optional)
+            status: New status ('todo', 'in-progress', 'done') (optional)
+            priority: New priority ('low', 'medium', 'high') (optional)
+            due_date: New due date (optional)
 
         Returns:
             Dictionary with updated task details
@@ -168,7 +189,7 @@ class MCPTaskTools:
             if not task:
                 logger.warning(f"Task {task_id} not found for user: {self.user_id}")
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
+                    status_code=http_status.HTTP_404_NOT_FOUND,
                     detail="Task not found or does not belong to the authenticated user"
                 )
 
@@ -177,8 +198,15 @@ class MCPTaskTools:
                 task.title = title
             if description is not None:
                 task.description = description
-            if completed is not None:
-                task.completed = completed
+            if status is not None:
+                task.status = status
+            if priority is not None:
+                task.priority = priority
+            if due_date is not None:
+                task.due_date = due_date
+
+            # Always update the updated_at timestamp
+            task.updated_at = datetime.now()
 
             self.session.add(task)
             self.session.commit()
@@ -190,16 +218,19 @@ class MCPTaskTools:
                 "id": task.id,
                 "title": task.title,
                 "description": task.description,
-                "completed": task.completed,
+                "status": task.status,
+                "priority": task.priority,
+                "due_date": task.due_date.isoformat() if task.due_date else None,
                 "user_id": task.user_id,
-                "created_at": task.created_at.isoformat() if task.created_at else None
+                "created_at": task.created_at.isoformat() if task.created_at else None,
+                "updated_at": task.updated_at.isoformat() if task.updated_at else None
             }
         except HTTPException:
             raise
         except Exception as e:
             logger.error(f"Error updating task {task_id} for user {self.user_id}: {str(e)}")
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to update task"
             )
 
@@ -220,7 +251,7 @@ class MCPTaskTools:
             if not task:
                 logger.warning(f"Task {task_id} not found for user: {self.user_id}")
                 raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
+                    status_code=http_status.HTTP_404_NOT_FOUND,
                     detail="Task not found or does not belong to the authenticated user"
                 )
 
@@ -235,19 +266,24 @@ class MCPTaskTools:
         except Exception as e:
             logger.error(f"Error deleting task {task_id} for user {self.user_id}: {str(e)}")
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                status_code=http_status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to delete task"
             )
 
 # Register MCP tools using decorators
 @mcp.tool
-def add_task(title: str, description: Optional[str] = None, user_id: str = None) -> Dict[str, Any]:
+def add_task(title: str, description: Optional[str] = None, status: Optional[str] = 'todo',
+             priority: Optional[str] = 'medium', due_date: Optional[str] = None,
+             user_id: str = None) -> Dict[str, Any]:
     """
     Add a new task for the user.
 
     Args:
         title: Title of the task to create
         description: Optional description of the task
+        status: Task status ('todo', 'in-progress', 'done'), defaults to 'todo'
+        priority: Task priority ('low', 'medium', 'high'), defaults to 'medium'
+        due_date: Optional due date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS)
         user_id: ID of the user creating the task
 
     Returns:
@@ -255,8 +291,16 @@ def add_task(title: str, description: Optional[str] = None, user_id: str = None)
     """
     session = next(get_session())
     try:
+        # Parse due_date string to datetime if provided
+        due_date_obj = None
+        if due_date:
+            try:
+                due_date_obj = datetime.fromisoformat(due_date.replace('Z', '+00:00'))
+            except ValueError:
+                logger.warning(f"Invalid due_date format: {due_date}")
+
         tools = MCPTaskTools(session, user_id)
-        return tools.add_task(title, description)
+        return tools.add_task(title, description, status, priority, due_date_obj)
     finally:
         session.close()
 
@@ -299,7 +343,8 @@ def complete_task(task_id: int, user_id: str) -> Dict[str, Any]:
 
 @mcp.tool
 def update_task(task_id: int, title: Optional[str] = None,
-               description: Optional[str] = None, completed: Optional[bool] = None,
+               description: Optional[str] = None, status: Optional[str] = None,
+               priority: Optional[str] = None, due_date: Optional[str] = None,
                user_id: str = None) -> Dict[str, Any]:
     """
     Update an existing task for the user.
@@ -308,7 +353,9 @@ def update_task(task_id: int, title: Optional[str] = None,
         task_id: ID of the task to update
         title: New title (optional)
         description: New description (optional)
-        completed: New completion status (optional)
+        status: New status ('todo', 'in-progress', 'done') (optional)
+        priority: New priority ('low', 'medium', 'high') (optional)
+        due_date: New due date in ISO format (YYYY-MM-DD or YYYY-MM-DDTHH:MM:SS) (optional)
         user_id: ID of the user requesting the action
 
     Returns:
@@ -316,8 +363,16 @@ def update_task(task_id: int, title: Optional[str] = None,
     """
     session = next(get_session())
     try:
+        # Parse due_date string to datetime if provided
+        due_date_obj = None
+        if due_date:
+            try:
+                due_date_obj = datetime.fromisoformat(due_date.replace('Z', '+00:00'))
+            except ValueError:
+                logger.warning(f"Invalid due_date format: {due_date}")
+
         tools = MCPTaskTools(session, user_id)
-        return tools.update_task(task_id, title, description, completed)
+        return tools.update_task(task_id, title, description, status, priority, due_date_obj)
     finally:
         session.close()
 

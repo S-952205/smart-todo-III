@@ -32,7 +32,9 @@ def create_task(
         task = Task(
             title=task_data.title,
             description=task_data.description,
-            completed=task_data.completed or False,
+            status=task_data.status or 'todo',
+            priority=task_data.priority or 'medium',
+            due_date=task_data.due_date,
             user_id=user_id
         )
 
@@ -130,6 +132,7 @@ def update_task(
     Update an existing task for the authenticated user.
     """
     from models import Task
+    from datetime import datetime
 
     try:
         statement = select(Task).where(Task.id == task_id).where(Task.user_id == user_id)
@@ -145,6 +148,9 @@ def update_task(
         # Update only the fields that were provided
         for field, value in task_update.dict(exclude_unset=True).items():
             setattr(task, field, value)
+
+        # Always update the updated_at timestamp
+        task.updated_at = datetime.now()
 
         session.add(task)
         session.commit()
@@ -171,8 +177,10 @@ def toggle_task_completion(
 ) -> TaskResponse:
     """
     Toggle the completion status of a task for the authenticated user.
+    Cycles through: todo -> done -> todo
     """
     from models import Task
+    from datetime import datetime
 
     try:
         statement = select(Task).where(Task.id == task_id).where(Task.user_id == user_id)
@@ -185,14 +193,15 @@ def toggle_task_completion(
                 detail="Task not found or does not belong to the authenticated user"
             )
 
-        # Toggle the completion status
-        task.completed = not task.completed
+        # Toggle between todo and done
+        task.status = 'done' if task.status != 'done' else 'todo'
+        task.updated_at = datetime.now()
 
         session.add(task)
         session.commit()
         session.refresh(task)
 
-        logger.info(f"Task completion toggled for task: {task.id} for user: {user_id}")
+        logger.info(f"Task status toggled for task: {task.id} for user: {user_id}")
 
         return TaskResponse.from_orm(task) if hasattr(TaskResponse, 'from_orm') else TaskResponse(**task.dict())
     except HTTPException:
