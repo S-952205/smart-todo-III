@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from routes import tasks
 from routes import auth
 from routes import chat
+from routes import chat_mcp  # NEW: Import MCP-based chat routes
 from config import settings
 from sqlmodel import SQLModel
 from db import engine
@@ -40,7 +41,8 @@ app.add_middleware(
 # Include the auth, tasks, and chat routers
 app.include_router(auth.router, prefix="/api")
 app.include_router(tasks.router, prefix="/api/v1")
-app.include_router(chat.router, prefix="/api/v1/chat")
+app.include_router(chat.router, prefix="/api/v1/chat")  # OLD implementation (has issues)
+app.include_router(chat_mcp.router, prefix="/api/v1/chat-mcp", tags=["chat-mcp"])  # NEW: MCP-based implementation
 
 
 @app.get("/health")
