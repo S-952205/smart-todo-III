@@ -43,12 +43,31 @@ class MCPTaskTools:
             Dictionary with task details
         """
         try:
+            # Validate required fields
+            if not title or not isinstance(title, str) or not title.strip():
+                logger.error(f"Invalid title provided: {title}")
+                raise ValueError("Task title is required and must be a non-empty string")
+
+            # Normalize status and priority
+            valid_statuses = ['todo', 'in-progress', 'done']
+            valid_priorities = ['low', 'medium', 'high']
+
+            normalized_status = (status or 'todo').lower()
+            if normalized_status not in valid_statuses:
+                logger.warning(f"Invalid status '{status}', defaulting to 'todo'")
+                normalized_status = 'todo'
+
+            normalized_priority = (priority or 'medium').lower()
+            if normalized_priority not in valid_priorities:
+                logger.warning(f"Invalid priority '{priority}', defaulting to 'medium'")
+                normalized_priority = 'medium'
+
             # Create task with the authenticated user's ID
             task = Task(
-                title=title,
-                description=description,
-                status=status or 'todo',
-                priority=priority or 'medium',
+                title=title.strip(),
+                description=description.strip() if description else None,
+                status=normalized_status,
+                priority=normalized_priority,
                 due_date=due_date,
                 user_id=self.user_id
             )
