@@ -468,11 +468,41 @@ RESPONSE GUIDELINES:
                         function_args = self._parse_tool_arguments(tool_call.function.arguments)
                     elif isinstance(tool_call.function.arguments, dict):
                         function_args = tool_call.function.arguments
+                    elif tool_call.function.arguments is None:
+                        logger.warning(f"Tool {function_name} called with None arguments")
+                        function_args = {}
                     else:
                         logger.warning(f"Unexpected arguments type: {type(tool_call.function.arguments)}")
                         function_args = {}
 
                     logger.info(f"Executing tool: {function_name} with args: {function_args}")
+
+                    # Validate required parameters before execution
+                    required_params = {
+                        "update_task": ["task_id"],
+                        "complete_task": ["task_id"],
+                        "delete_task": ["task_id"],
+                        "add_task": ["title"]
+                    }
+
+                    if function_name in required_params:
+                        missing_params = [p for p in required_params[function_name] if not function_args.get(p)]
+                        if missing_params:
+                            logger.error(f"Tool {function_name} missing required parameters: {missing_params}")
+                            result_str = json.dumps({
+                                "error": f"Missing required parameters: {', '.join(missing_params)}",
+                                "hint": "You must call list_tasks() first to get the task_id when the user refers to a task by its title or description. Only use direct task_id when the user provides a specific numeric ID.",
+                                "required_workflow": "1. Call list_tasks() to see all tasks with their IDs. 2. Find the matching task. 3. Use that task's ID in your next tool call."
+                            })
+
+                            # Add tool response to messages
+                            messages.append({
+                                "role": "tool",
+                                "tool_call_id": tool_call.id,
+                                "name": function_name,
+                                "content": result_str
+                            })
+                            continue  # Skip execution, let LLM try again
 
                     # Execute the appropriate MCP tool
                     try:
