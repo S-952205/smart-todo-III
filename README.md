@@ -1,16 +1,19 @@
 # Todo Full Stack Application
 
-A complete full-stack todo application with authentication, built using modern technologies. The application features a Next.js 16+ frontend with TypeScript and Tailwind CSS, and a FastAPI backend with PostgreSQL database integration.
+A complete full-stack todo application with authentication and AI-powered chatbot, built using modern technologies. The application features a Next.js 16+ frontend with TypeScript and Tailwind CSS, and a FastAPI backend with PostgreSQL database integration.
 
 ## 🚀 Features
 
 - **Full Authentication System**: User registration, login, and session management
 - **Task Management**: Create, read, update, and delete tasks
-- **User Isolation**: Users can only access their own tasks
+- **AI Chatbot**: Natural language task management via OpenRouter API
+- **MCP Tools Integration**: Agent-driven task operations with user isolation
+- **Conversation History**: Persistent chat sessions stored in database
+- **User Isolation**: Users can only access their own tasks and conversations
 - **Responsive Design**: Works on desktop and mobile devices
 - **Dark Mode Support**: Automatic dark/light mode with toggle functionality
 - **Secure API**: JWT-based authentication and authorization
-- **Modern UI**: Built with Shadcn UI components
+- **Modern UI**: Built with Shadcn UI and ChatKit components
 
 ## 🌐 Live Deployments
 
@@ -27,7 +30,7 @@ Try out the application live! The frontend is hosted on Vercel and the backend A
 - **Styling**: Tailwind CSS v4 with custom theme
 - **Authentication**: Better Auth
 - **Forms**: React Hook Form with Zod validation
-- **UI Components**: Shadcn UI
+- **UI Components**: Shadcn UI, ChatKit UI
 - **Package Manager**: npm
 
 ### Backend
@@ -36,6 +39,9 @@ Try out the application live! The frontend is hosted on Vercel and the backend A
 - **Database**: PostgreSQL (Neon)
 - **ORM**: SQLModel
 - **Authentication**: JWT tokens
+- **AI Integration**: OpenRouter API
+- **MCP Tools**: FastMCP framework
+- **Migrations**: Alembic
 - **Package Manager**: uv
 
 ## 📁 Project Structure
@@ -44,21 +50,22 @@ Try out the application live! The frontend is hosted on Vercel and the backend A
 todo-full-stack/
 ├── backend/                 # FastAPI backend
 │   ├── main.py             # Main application entry point
-│   ├── models.py           # Database models
+│   ├── models/             # Database models (User, Task, Conversation, Message)
+│   ├── routes/             # API route handlers (auth, tasks, chat)
+│   ├── services/           # Business logic (auth, tasks, chat_service)
+│   ├── tools/              # MCP tools for AI agent
+│   ├── alembic/            # Database migrations
 │   ├── auth.py             # Authentication logic
-│   ├── db.py               # Database connection and setup
-│   ├── routes/             # API route handlers
-│   ├── config.py           # Configuration settings
-│   └── requirements.txt    # Python dependencies
+│   ├── db.py               # Database connection
+│   └── config.py           # Configuration settings
 ├── frontend/               # Next.js frontend
 │   ├── src/
 │   │   ├── app/            # Application pages and routes
-│   │   ├── components/     # Reusable UI components
+│   │   ├── components/     # UI components (dashboard, auth, ChatKit)
 │   │   ├── lib/            # Utilities and API clients
 │   │   └── types/          # TypeScript type definitions
 │   ├── public/             # Static assets
-│   ├── package.json        # Node.js dependencies
-│   └── tailwind.config.ts  # Tailwind CSS configuration
+│   └── package.json        # Node.js dependencies
 └── README.md               # This file
 ```
 
@@ -88,10 +95,22 @@ todo-full-stack/
 3. Configure environment variables:
    ```bash
    cp .env.example .env
-   # Edit .env with your database URL and auth secret
+   # Edit .env with your database URL, auth secret, and OpenRouter API key
    ```
 
-4. Run the application:
+   Required variables:
+   ```env
+   DATABASE_URL=postgresql://user:password@host/database
+   BETTER_AUTH_SECRET=your_secret_key
+   OPENROUTER_API_KEY=your_openrouter_api_key  # For AI chatbot
+   ```
+
+4. Run database migrations:
+   ```bash
+   alembic upgrade head
+   ```
+
+5. Run the application:
    ```bash
    uv run uvicorn main:app --reload --port 8000
    ```
@@ -127,14 +146,23 @@ todo-full-stack/
 
 The backend provides a secure API under `/api/v1/`:
 
+### Authentication
 - `POST /auth/register` - User registration
 - `POST /auth/login` - User login
+
+### Task Management
 - `POST /tasks` - Create a new task
 - `GET /tasks` - Get all tasks for authenticated user
 - `GET /tasks/{id}` - Get specific task
 - `PUT /tasks/{id}` - Update task details
 - `PATCH /tasks/{id}/complete` - Toggle completion status
 - `DELETE /tasks/{id}` - Delete task
+
+### AI Chat
+- `POST /chat` - Send message to AI chatbot
+- `GET /chat/conversations` - Get all conversations
+- `GET /chat/conversations/{id}` - Get conversation with messages
+- `DELETE /chat/conversations/{id}` - Delete conversation
 
 All endpoints (except auth) require `Authorization: Bearer <token>` header.
 
@@ -145,6 +173,17 @@ All endpoints (except auth) require `Authorization: Bearer <token>` header.
 3. Tokens are stored in localStorage and sent with API requests
 4. Backend validates tokens and enforces user isolation
 5. Frontend automatically refreshes expired tokens
+6. All task and chat operations require valid authentication
+
+## 🤖 AI Chatbot Usage
+
+Manage tasks through natural language conversation:
+- "Add a task to buy groceries"
+- "Show me my tasks"
+- "Set the presentation task to high priority"
+- "Complete my grocery shopping task"
+
+The AI agent uses MCP tools to perform operations with full user isolation and JWT authentication.
 
 ## 🧪 Testing
 
