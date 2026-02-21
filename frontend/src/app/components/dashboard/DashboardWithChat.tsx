@@ -192,7 +192,8 @@ export const DashboardWithChat: React.FC<DashboardWithChatProps> = ({ initialTas
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 400 }}
             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="fixed right-6 bottom-24 w-96 h-[600px] z-40 shadow-2xl"
+            className="fixed right-4 bottom-20 w-[90vw] sm:w-96 h-[70vh] max-h-[600px] z-40 shadow-2xl"
+            style={{ maxHeight: 'calc(100vh - 120px)' }}
           >
             <ChatInterface />
           </motion.div>

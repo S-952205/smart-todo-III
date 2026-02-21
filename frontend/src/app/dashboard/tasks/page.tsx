@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Task } from '@/types';
 import TaskCard from '@/components/dashboard/task-card';
 import TaskForm from '@/components/dashboard/task-form';
 import apiClient from '@/lib/api/client';
 import { useAuth } from '@/context/auth-context';
-import Link from 'next/link';
+import { ChatInterface } from '@/app/components/ChatKit/ChatInterface';
+import { FloatingChatBubble } from '@/components/ui/FloatingChatBubble';
 
 const TasksPage: React.FC = () => {
   const { state } = useAuth();
@@ -16,6 +18,7 @@ const TasksPage: React.FC = () => {
   const [showForm, setShowForm] = useState<boolean>(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filter, setFilter] = useState<'all' | 'todo' | 'in-progress' | 'done'>('all');
+  const [showChat, setShowChat] = useState(false);
 
   // Fetch tasks from API
   useEffect(() => {
@@ -186,10 +189,6 @@ const TasksPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">My Tasks</h1>
 
           <div className="flex space-x-4">
-            <Link href="/dashboard" className="bg-purple-600 text-white px-4 py-2 rounded-md hover:bg-purple-700">
-              Chat with AI Assistant
-            </Link>
-
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
@@ -257,6 +256,28 @@ const TasksPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Floating Chat Bubble */}
+      <FloatingChatBubble
+        isOpen={showChat}
+        onClick={() => setShowChat(!showChat)}
+      />
+
+      {/* Chat Panel */}
+      <AnimatePresence>
+        {showChat && (
+          <motion.div
+            initial={{ opacity: 0, x: 400 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 400 }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed right-4 bottom-20 w-[90vw] sm:w-96 h-[70vh] max-h-[600px] z-40 shadow-2xl"
+            style={{ maxHeight: 'calc(100vh - 120px)' }}
+          >
+            <ChatInterface />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
