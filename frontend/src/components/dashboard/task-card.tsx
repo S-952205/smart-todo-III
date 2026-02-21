@@ -41,13 +41,13 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusCha
     <motion.div
       whileHover={{ scale: 1.01, y: -2 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className={`rounded-xl p-5 shadow-md hover:shadow-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 ${getPriorityColor(task.priority)}`}
+      className={`rounded-none p-5 shadow-sm hover:shadow-md bg-white dark:bg-gray-800 border border-[#BFC9D1]/40 dark:border-gray-700 transition-all duration-200 ${getPriorityColor(task.priority)}`}
     >
       <div className="flex justify-between items-start">
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-lg text-gray-900 dark:text-white break-words">{task.title}</h3>
+          <h3 className="font-semibold text-lg text-[#25343F] dark:text-white break-words font-poppins">{task.title}</h3>
           {task.description && (
-            <p className="text-gray-600 dark:text-gray-300 mt-2 text-sm break-words leading-relaxed">{task.description}</p>
+            <p className="text-[#25343F]/70 dark:text-gray-300 mt-2 text-sm break-words leading-relaxed font-poppins font-light">{task.description}</p>
           )}
         </div>
         <div className="flex space-x-2 ml-3 flex-shrink-0">
@@ -55,7 +55,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusCha
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onEdit(task)}
-            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors"
+            className="text-[#25343F] hover:text-[#25343F]/70 dark:text-white dark:hover:text-white/70 p-2 rounded-none hover:bg-[#BFC9D1]/20 dark:hover:bg-gray-700 transition-colors"
             aria-label="Edit task"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -66,7 +66,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusCha
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={() => onDelete(task.id)}
-            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-gray-700 transition-colors"
+            className="text-[#FF5B5B] hover:text-[#FF5B5B]/80 dark:text-[#FF5B5B] dark:hover:text-[#FF5B5B]/80 p-2 rounded-none hover:bg-[#FF5B5B]/10 dark:hover:bg-gray-700 transition-colors"
             aria-label="Delete task"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -84,7 +84,7 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusCha
         <select
           value={task.status}
           onChange={(e) => onStatusChange(task.id, e.target.value as 'todo' | 'in-progress' | 'done')}
-          className="text-xs border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer transition-all"
+          className="text-xs border border-[#BFC9D1]/40 dark:border-gray-600 rounded-none px-3 py-1.5 bg-white dark:bg-gray-700 text-[#25343F] dark:text-white focus:outline-none focus:ring-2 focus:ring-[#FF5B5B] focus:border-[#FF5B5B] cursor-pointer transition-all font-poppins"
         >
           <option value="todo">To Do</option>
           <option value="in-progress">In Progress</option>

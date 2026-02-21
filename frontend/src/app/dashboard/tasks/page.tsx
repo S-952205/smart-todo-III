@@ -25,23 +25,30 @@ const TasksPage: React.FC = () => {
     const fetchTasks = async () => {
       try {
         setLoading(true);
+        setError(null); // Clear any previous errors
         const response = await apiClient.get<any[]>('/api/v1/tasks');
 
-        if (response.success && response.data) {
+        if (response.success) {
           // Transform dates to Date objects
-          const transformedTasks = response.data.map(task => ({
+          const transformedTasks = response.data ? response.data.map(task => ({
             ...task,
             createdAt: new Date(task.created_at),
             updatedAt: new Date(task.updated_at),
             dueDate: task.due_date ? new Date(task.due_date) : undefined,
             userId: task.user_id
-          }));
+          })) : [];
           setTasks(transformedTasks);
         } else {
-          setError(response.message || response.error || 'Failed to fetch tasks');
+          // Only set error if it's a real failure, not just empty data
+          if (response.error && response.error !== 'No tasks found') {
+            setError(response.message || response.error || 'Failed to fetch tasks');
+          } else {
+            setTasks([]); // Empty tasks, not an error
+          }
         }
       } catch (err: any) {
-        setError(err.message || 'An error occurred while fetching tasks');
+        // Only show error for actual network/server errors
+        setError(err.message || 'Unable to connect to server. Please try again.');
         console.error('Error fetching tasks:', err);
       } finally {
         setLoading(false);
@@ -174,8 +181,8 @@ const TasksPage: React.FC = () => {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="py-8">
-          <div className="flex justify-center items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-600"></div>
+          <div className="flex justify-center items-center min-h-[400px]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#FF5B5B]"></div>
           </div>
         </div>
       </div>
@@ -186,13 +193,13 @@ const TasksPage: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="py-8">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">My Tasks</h1>
+          <h1 className="text-2xl font-semibold text-[#25343F] font-poppins">My Tasks</h1>
 
           <div className="flex space-x-4">
             <select
               value={filter}
               onChange={(e) => setFilter(e.target.value as any)}
-              className="border rounded-md px-3 py-2"
+              className="border border-[#BFC9D1]/40 rounded-none px-3 py-2 bg-white text-[#25343F] focus:outline-none focus:ring-2 focus:ring-[#FF5B5B] font-poppins"
             >
               <option value="all">All Tasks</option>
               <option value="todo">To Do</option>
@@ -205,7 +212,7 @@ const TasksPage: React.FC = () => {
                 setEditingTask(null);
                 setShowForm(true);
               }}
-              className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+              className="bg-[#FF5B5B] hover:bg-[#FF5B5B]/90 text-white px-4 py-2 rounded-none font-medium transition-all font-poppins"
             >
               Add New Task
             </button>
@@ -213,14 +220,23 @@ const TasksPage: React.FC = () => {
         </div>
 
         {error && (
-          <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="mb-4 bg-[#FF5B5B]/10 border-l-4 border-[#FF5B5B] text-[#25343F] px-4 py-3 rounded-none"
+          >
+            <p className="font-poppins">{error}</p>
+          </motion.div>
         )}
 
         {showForm ? (
-          <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="bg-white border border-[#BFC9D1]/40 p-6 rounded-none shadow-sm mb-6"
+          >
+            <h2 className="text-lg font-semibold text-[#25343F] mb-4 font-poppins">
               {editingTask ? 'Edit Task' : 'Create New Task'}
             </h2>
             <TaskForm
@@ -232,13 +248,40 @@ const TasksPage: React.FC = () => {
               }}
               submitText={editingTask ? 'Update Task' : 'Create Task'}
             />
-          </div>
+          </motion.div>
         ) : null}
 
         {filteredTasks.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-500">No tasks found. {tasks.length === 0 ? 'Create your first task!' : 'Try changing your filter.'}</p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16"
+          >
+            <div className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#BFC9D1]/20 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-[#25343F]/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-semibold text-[#25343F] mb-2 font-poppins">
+              {tasks.length === 0 ? 'No tasks yet' : 'No tasks match your filter'}
+            </h3>
+            <p className="text-[#25343F]/60 mb-6 font-poppins font-light">
+              {tasks.length === 0
+                ? 'Start organizing your work by creating your first task'
+                : 'Try selecting a different filter to see your tasks'}
+            </p>
+            {tasks.length === 0 && (
+              <button
+                onClick={() => {
+                  setEditingTask(null);
+                  setShowForm(true);
+                }}
+                className="bg-[#FF5B5B] hover:bg-[#FF5B5B]/90 text-white px-6 py-3 rounded-none font-medium transition-all font-poppins"
+              >
+                Create Your First Task
+              </button>
+            )}
+          </motion.div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredTasks.map((task) => (

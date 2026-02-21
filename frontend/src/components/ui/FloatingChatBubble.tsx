@@ -24,7 +24,7 @@ export const FloatingChatBubble: React.FC<FloatingChatBubbleProps> = ({
       {/* Chat Button */}
       <motion.button
         onClick={onClick}
-        className="relative w-14 h-14 bg-gradient-to-br from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-full shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all"
+        className="relative w-14 h-14 bg-[#FF5B5B] hover:bg-[#FF5B5B]/90 text-white rounded-full shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-[#FF5B5B] focus:ring-offset-2 dark:focus:ring-offset-gray-900 transition-all"
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
         aria-label={isOpen ? 'Close chat' : 'Open chat'}
@@ -81,7 +81,7 @@ export const FloatingChatBubble: React.FC<FloatingChatBubbleProps> = ({
       {/* Pulse Animation when closed */}
       {!isOpen && (
         <motion.div
-          className="absolute inset-0 bg-indigo-600 rounded-full -z-10"
+          className="absolute inset-0 bg-[#FF5B5B] rounded-full -z-10"
           initial={{ scale: 1, opacity: 0.5 }}
           animate={{ scale: 1.5, opacity: 0 }}
           transition={{

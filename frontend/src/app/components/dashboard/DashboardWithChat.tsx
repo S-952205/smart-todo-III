@@ -76,7 +76,7 @@ export const DashboardWithChat: React.FC<DashboardWithChatProps> = ({ initialTas
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 transition-colors duration-300">
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-300">
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <motion.div
@@ -86,32 +86,32 @@ export const DashboardWithChat: React.FC<DashboardWithChatProps> = ({ initialTas
         >
           {/* Welcome Section */}
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              Welcome back, {state.user?.name || state.user?.email?.split('@')[0]}! 👋
+            <h1 className="text-3xl font-semibold text-[#25343F] dark:text-white mb-2 font-poppins">
+              Welcome back, {state.user?.name || state.user?.email?.split('@')[0]}!
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-[#25343F]/70 dark:text-gray-400 font-poppins font-light">
               Here's what you need to focus on today.
             </p>
           </div>
 
           {/* Tasks Section */}
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-            <div className="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-none shadow-sm border border-[#BFC9D1]/40 dark:border-gray-700 overflow-hidden">
+            <div className="px-6 py-5 border-b border-[#BFC9D1]/40 dark:border-gray-700">
               <div className="flex justify-between items-center">
                 <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Your Tasks</h2>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  <h2 className="text-2xl font-semibold text-[#25343F] dark:text-white font-poppins">Your Tasks</h2>
+                  <p className="text-sm text-[#25343F]/60 dark:text-gray-400 mt-1 font-poppins font-light">
                     {tasks.length} {tasks.length === 1 ? 'task' : 'tasks'} total
                   </p>
                 </div>
                 <motion.button
                   onClick={() => setShowTaskForm(!showTaskForm)}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`px-5 py-2.5 rounded-lg font-medium transition-all shadow-lg ${
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className={`px-5 py-2.5 rounded-none font-medium transition-all font-poppins ${
                     showTaskForm
-                      ? 'bg-gray-500 hover:bg-gray-600 text-white'
-                      : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white'
+                      ? 'bg-[#25343F] hover:bg-[#25343F]/90 text-white'
+                      : 'bg-[#FF5B5B] hover:bg-[#FF5B5B]/90 text-white'
                   }`}
                 >
                   {showTaskForm ? 'Cancel' : '+ Add Task'}
@@ -127,7 +127,7 @@ export const DashboardWithChat: React.FC<DashboardWithChatProps> = ({ initialTas
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
-                    className="mb-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800 rounded-xl border border-gray-200 dark:border-gray-600"
+                    className="mb-6 p-6 bg-[#BFC9D1]/10 dark:bg-gray-700 rounded-none border border-[#BFC9D1]/40 dark:border-gray-600"
                   >
                     <TaskFormComponent
                       onSubmit={handleTaskFormSubmit}
@@ -164,13 +164,13 @@ export const DashboardWithChat: React.FC<DashboardWithChatProps> = ({ initialTas
                   animate={{ opacity: 1 }}
                   className="text-center py-16"
                 >
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/30 dark:to-purple-900/30 flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-[#BFC9D1]/20 dark:bg-gray-700 flex items-center justify-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-[#25343F] dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                     </svg>
                   </div>
-                  <p className="text-gray-500 dark:text-gray-400 text-lg font-medium">No tasks yet</p>
-                  <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">Create your first task to get started!</p>
+                  <p className="text-[#25343F]/70 dark:text-gray-400 text-lg font-medium font-poppins">No tasks yet</p>
+                  <p className="text-[#25343F]/50 dark:text-gray-500 text-sm mt-2 font-poppins font-light">Create your first task to get started!</p>
                 </motion.div>
               )}
             </div>

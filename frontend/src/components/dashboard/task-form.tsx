@@ -48,15 +48,15 @@ const TaskFormComponent: React.FC<TaskFormComponentProps> = ({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
       {/* Title Field */}
       <div>
-        <label htmlFor="title" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-          Title <span className="text-red-500">*</span>
+        <label htmlFor="title" className="block text-sm font-medium text-[#25343F] dark:text-gray-300 mb-2 font-poppins">
+          Title <span className="text-[#FF5B5B]">*</span>
         </label>
         <input
           id="title"
           {...register('title')}
           type="text"
-          className={`w-full px-4 py-3 border rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white dark:bg-gray-800 dark:text-white ${
-            errors.title ? 'border-red-500 dark:border-red-400' : 'border-gray-300 dark:border-gray-600'
+          className={`w-full px-4 py-3 border rounded-none shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FF5B5B] focus:border-[#FF5B5B] transition-all bg-white dark:bg-gray-800 dark:text-white font-poppins ${
+            errors.title ? 'border-[#FF5B5B] dark:border-[#FF5B5B]' : 'border-[#BFC9D1]/40 dark:border-gray-600'
           }`}
           placeholder="Enter task title..."
         />
@@ -73,14 +73,14 @@ const TaskFormComponent: React.FC<TaskFormComponentProps> = ({
 
       {/* Description Field */}
       <div>
-        <label htmlFor="description" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+        <label htmlFor="description" className="block text-sm font-medium text-[#25343F] dark:text-gray-300 mb-2 font-poppins">
           Description
         </label>
         <textarea
           id="description"
           {...register('description')}
           rows={4}
-          className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white dark:bg-gray-800 dark:text-white resize-none"
+          className="w-full px-4 py-3 border border-[#BFC9D1]/40 dark:border-gray-600 rounded-none shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FF5B5B] focus:border-[#FF5B5B] transition-all bg-white dark:bg-gray-800 dark:text-white resize-none font-poppins"
           placeholder="Enter task description..."
         ></textarea>
         {errors.description && (
@@ -98,13 +98,13 @@ const TaskFormComponent: React.FC<TaskFormComponentProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Status Field */}
         <div>
-          <label htmlFor="status" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="status" className="block text-sm font-medium text-[#25343F] dark:text-gray-300 mb-2 font-poppins">
             Status
           </label>
           <select
             id="status"
             {...register('status')}
-            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white dark:bg-gray-800 dark:text-white cursor-pointer"
+            className="w-full px-4 py-3 border border-[#BFC9D1]/40 dark:border-gray-600 rounded-none shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FF5B5B] focus:border-[#FF5B5B] transition-all bg-white dark:bg-gray-800 dark:text-white cursor-pointer font-poppins"
           >
             <option value="todo">To Do</option>
             <option value="in-progress">In Progress</option>
@@ -123,13 +123,13 @@ const TaskFormComponent: React.FC<TaskFormComponentProps> = ({
 
         {/* Priority Field */}
         <div>
-          <label htmlFor="priority" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="priority" className="block text-sm font-medium text-[#25343F] dark:text-gray-300 mb-2 font-poppins">
             Priority
           </label>
           <select
             id="priority"
             {...register('priority')}
-            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white dark:bg-gray-800 dark:text-white cursor-pointer"
+            className="w-full px-4 py-3 border border-[#BFC9D1]/40 dark:border-gray-600 rounded-none shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FF5B5B] focus:border-[#FF5B5B] transition-all bg-white dark:bg-gray-800 dark:text-white cursor-pointer font-poppins"
           >
             <option value="low">Low</option>
             <option value="medium">Medium</option>
@@ -139,14 +139,14 @@ const TaskFormComponent: React.FC<TaskFormComponentProps> = ({
 
         {/* Due Date Field */}
         <div>
-          <label htmlFor="dueDate" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+          <label htmlFor="dueDate" className="block text-sm font-medium text-[#25343F] dark:text-gray-300 mb-2 font-poppins">
             Due Date
           </label>
           <input
             id="dueDate"
             {...register('dueDate')}
             type="date"
-            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all bg-white dark:bg-gray-800 dark:text-white"
+            className="w-full px-4 py-3 border border-[#BFC9D1]/40 dark:border-gray-600 rounded-none shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FF5B5B] focus:border-[#FF5B5B] transition-all bg-white dark:bg-gray-800 dark:text-white font-poppins"
           />
           {errors.dueDate && (
             <motion.p
@@ -164,18 +164,18 @@ const TaskFormComponent: React.FC<TaskFormComponentProps> = ({
       <div className="flex gap-3 pt-2">
         <motion.button
           type="submit"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="flex-1 py-3 px-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          className="flex-1 py-3 px-6 bg-[#FF5B5B] hover:bg-[#FF5B5B]/90 text-white font-medium rounded-none shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-[#FF5B5B] focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all font-poppins"
         >
           {submitText}
         </motion.button>
         <motion.button
           type="button"
           onClick={onCancel}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="flex-1 py-3 px-6 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-semibold rounded-xl bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all"
+          whileHover={{ scale: 1.01 }}
+          whileTap={{ scale: 0.99 }}
+          className="flex-1 py-3 px-6 border-2 border-[#BFC9D1]/40 dark:border-gray-600 text-[#25343F] dark:text-gray-300 font-medium rounded-none bg-white dark:bg-gray-800 hover:bg-[#BFC9D1]/10 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-[#25343F] focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-all font-poppins"
         >
           Cancel
         </motion.button>
