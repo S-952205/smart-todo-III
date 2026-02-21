@@ -3,22 +3,26 @@
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/auth-context';
-import ThemeToggle from '../theme-toggle';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
+import { UserAvatar } from '@/components/ui/UserAvatar';
+import { useRouter } from 'next/navigation';
 
 const Navbar: React.FC = () => {
   const { state, logout } = useAuth();
+  const router = useRouter();
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
+    router.push('/login');
   };
 
   return (
-    <nav className="bg-indigo-600 dark:bg-gray-800">
+    <nav className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <Link href="/dashboard" className="text-white dark:text-white text-xl font-bold">
+              <Link href="/dashboard" className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
                 Todo App
               </Link>
             </div>
@@ -26,37 +30,28 @@ const Navbar: React.FC = () => {
               <div className="ml-10 flex items-baseline space-x-4">
                 <Link
                   href="/dashboard"
-                  className="text-white dark:text-gray-300 hover:bg-indigo-700 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   Dashboard
                 </Link>
                 <Link
                   href="/dashboard/tasks"
-                  className="text-white dark:text-gray-300 hover:bg-indigo-700 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium"
+                  className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 px-3 py-2 rounded-md text-sm font-medium transition-colors"
                 >
                   My Tasks
                 </Link>
               </div>
             </div>
           </div>
-          <div className="ml-4 flex items-center md:ml-6 space-x-4">
+          <div className="flex items-center gap-4">
             <ThemeToggle />
-            {/* User profile dropdown */}
-            <div className="ml-3 relative">
-              <div className="flex items-center space-x-3">
-                {state.user?.name && (
-                  <span className="text-white dark:text-gray-300 hidden md:inline-block">
-                    Welcome, {state.user.name}
-                  </span>
-                )}
-                <button
-                  onClick={handleLogout}
-                  className="bg-indigo-700 dark:bg-indigo-600 text-white dark:text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-indigo-800 dark:hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-indigo-700 dark:ring-offset-gray-800 focus:ring-white"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
+            <UserAvatar
+              name={state.user?.name}
+              email={state.user?.email}
+              size="md"
+              showDropdown={true}
+              onLogout={handleLogout}
+            />
           </div>
         </div>
       </div>

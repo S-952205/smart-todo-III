@@ -14,7 +14,8 @@
       "Bash(taskkill:*)",
       "Bash(python:*)",
       "mcp__context7__get-library-docs",
-      "Bash(.specify/scripts/bash/create-phr.sh:*)"
+      "Bash(.specify/scripts/bash/create-phr.sh:*)",
+      "Bash(npm run build)"
     ]
   }
 }

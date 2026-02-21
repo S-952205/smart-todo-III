@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Task } from '@/types';
 
 interface TaskCardProps {
@@ -37,7 +38,11 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusCha
   };
 
   return (
-    <div className={` border-red-400 p-5 shadow-md bg-white dark:bg-gray-800 dark:border-gray-700 transition-all duration-200 hover:shadow-md ${getPriorityColor(task.priority)}`}>
+    <motion.div
+      whileHover={{ scale: 1.01, y: -2 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className={`rounded-xl p-5 shadow-md hover:shadow-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 transition-all duration-200 ${getPriorityColor(task.priority)}`}
+    >
       <div className="flex justify-between items-start">
         <div className="flex-1 min-w-0">
           <h3 className="font-semibold text-lg text-gray-900 dark:text-white break-words">{task.title}</h3>
@@ -46,36 +51,40 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusCha
           )}
         </div>
         <div className="flex space-x-2 ml-3 flex-shrink-0">
-          <button
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={() => onEdit(task)}
-            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 p-1 rounded-md hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors"
+            className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300 p-2 rounded-lg hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors"
             aria-label="Edit task"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
             </svg>
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
             onClick={() => onDelete(task.id)}
-            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1 rounded-md hover:bg-red-50 dark:hover:bg-gray-700 transition-colors"
+            className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-2 rounded-lg hover:bg-red-50 dark:hover:bg-gray-700 transition-colors"
             aria-label="Delete task"
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
               <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
             </svg>
-          </button>
+          </motion.button>
         </div>
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
-        <span className={`px-3 py-1 text-xs font-medium rounded-full border ${getStatusColor(task.status)}`}>
-          {task.status.replace('-', ' ')}
+        <span className={`px-3 py-1.5 text-xs font-semibold rounded-full border ${getStatusColor(task.status)}`}>
+          {task.status.replace('-', ' ').toUpperCase()}
         </span>
 
         <select
           value={task.status}
           onChange={(e) => onStatusChange(task.id, e.target.value as 'todo' | 'in-progress' | 'done')}
-          className="text-xs border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-1 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          className="text-xs border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-1.5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 cursor-pointer transition-all"
         >
           <option value="todo">To Do</option>
           <option value="in-progress">In Progress</option>
@@ -86,33 +95,31 @@ const TaskCard: React.FC<TaskCardProps> = ({ task, onEdit, onDelete, onStatusCha
       {(task.dueDate || task.priority) && (
         <div className="mt-3 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
           {task.dueDate && (
-            <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Due: {new Date(task.dueDate).toLocaleDateString()}
+              <span className="font-medium">{new Date(task.dueDate).toLocaleDateString()}</span>
             </div>
           )}
           {task.priority && (
-            <div className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="flex items-center gap-1.5 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-md">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 11l7-7 7 7M5 19l7-7 7 7" />
               </svg>
-              Priority: {task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}
+              <span className="font-medium">{task.priority.charAt(0).toUpperCase() + task.priority.slice(1)}</span>
             </div>
           )}
         </div>
       )}
 
-      <div className="mt-3 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-        <div className="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          Created: {new Date(task.createdAt).toLocaleDateString()}
-        </div>
+      <div className="mt-3 flex items-center text-xs text-gray-400 dark:text-gray-500">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <span>Created {new Date(task.createdAt).toLocaleDateString()}</span>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
