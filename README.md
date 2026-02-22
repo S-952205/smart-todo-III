@@ -17,8 +17,8 @@ A complete full-stack todo application with authentication and AI-powered chatbo
 
 ## 🌐 Live Deployments
 
-- **Frontend**: [Todo App Frontend (Vercel)](https://frontend-beta-teal-20.vercel.app)
-- **Backend**: [Todo App Backend (Hugging Face)](https://sufyanalisyed-todo-full-stack.hf.space)
+- **Frontend**: [Todo App Frontend (Vercel)](https://frontend-a3mc61w8s-syed-sufyans-projects.vercel.app)
+- **Backend**: [Todo App Backend (Hugging Face)](https://sufyanalisyed-todo-full-stack-iii.hf.space)
 
 Try out the application live! The frontend is hosted on Vercel and the backend API is deployed on Hugging Face.
 
